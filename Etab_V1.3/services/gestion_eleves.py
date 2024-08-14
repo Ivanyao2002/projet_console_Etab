@@ -55,18 +55,59 @@ def listerEleves():
         print("Aucun élève enregistré.")
 
 def modifierEleve():
-    matricule = input("Entrez le matricule de l'élève à modifier : ")
-    eleve = Eleve.obtenir(matricule)
-    if eleve:
-        print(f"Modification de l'élève : {eleve}")
-        eleve.date_naissance = input("Nouvelle date de naissance (JJ-MM-AAAA) : ") or eleve.get_date_naissance
-        eleve.ville = input("Nouvelle ville : ") or eleve.get_ville
-        eleve.prenom = input("Nouveau prénom : ") or eleve.get_prenom
-        eleve.nom = input("Nouveau nom : ") or eleve.get_nom
-        eleve.telephone = input("Nouveau téléphone : ") or eleve.get_telephone
-        eleve.classe = input("Nouvelle classe : ") or eleve.get_classe
-        
-        Eleve.modifier(eleve)
+    while True:
+        try:
+            matricule = input("\033[0;33mEntrez le matricule de l'élève à modifier : \033[0m")
+            eleve = Eleve.obtenir(matricule)
+            
+            if eleve is None:
+                print("\033[0;91mAucun élève trouvé avec ce matricule. Veuillez réessayer.\033[0m")
+                continue 
+            
+            if eleve:
+                print(f"Modification de l'élève : \033[0;32m\n-> {eleve}\033[0m")
+                while True:
+                    date_naissance = input("\033[0;33mNouvelle date de naissance (JJ-MM-AAAA) (Appuyez sur entrée pour garder l'ancienne valeur): \033[0m")
+                    if not date_naissance:  
+                        date_naissance = eleve.get_date_naissance
+                        break
+                    try:
+                        datetime.strptime(date_naissance, '%d-%m-%Y')
+                        break
+                    except ValueError:
+                        print("\033[0;91mDate invalide !! Veuillez entrer une date au format JJ-MM-AAAA.\033[0m")
+                ville = input("\033[0;33mNouvelle ville (Appuyez sur entrée pour garder l'ancienne valeur): \033[0m") or eleve.get_ville
+                prenom = input("\033[0;33mNouveau prénom (Appuyez sur entrée pour garder l'ancienne valeur): \033[0m") or eleve.get_prenom
+                nom = input("\033[0;33mNouveau nom (Appuyez sur entrée pour garder l'ancienne valeur): \033[0m") or eleve.get_nom
+                
+                while True:
+                    telephone = input("\033[0;33mNouveau téléphone (Appuyez sur entrée pour garder l'ancienne valeur): \033[0m")
+                    if not telephone:  
+                        telephone = eleve.get_telephone
+                        break
+                    if telephone.isdigit() and len(telephone) == 10:
+                        break  
+                    else:
+                        print("\033[0;91mNuméro invalide !! Veuillez entrer un numéro au format numérique (10 chiffres).\033[0m")
+                
+                classe = input("\033[0;33mNouvelle classe (Appuyez sur entrée pour garder l'ancienne valeur): \033[0m") or eleve.get_classe
+                if date_naissance:
+                    eleve.set_date_naissance(date_naissance)
+                if ville:
+                    eleve.set_ville(ville)
+                if prenom:
+                    eleve.set_prenom(prenom)
+                if nom:
+                    eleve.set_nom(nom)
+                if telephone:
+                    eleve.set_telephone(telephone)
+                if classe:
+                    eleve.set_classe(classe)
+                Eleve.modifier(eleve)
+            return  
+        except Exception as e:
+            print(f"\033[0;91mErreur lors de la modification de l'élève : {e}\033[0m")
+            time.sleep(0.5) 
 
 
 def supprimerEleve():

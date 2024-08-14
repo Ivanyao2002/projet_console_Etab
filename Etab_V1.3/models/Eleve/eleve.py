@@ -88,9 +88,9 @@ class Eleve(Personne, ICRUDEleve):
                     WHERE id = (SELECT id_personne FROM eleves WHERE matricule = %s)
                 """
                 try:
-                    date_naissance = eleve.date_naissance.strftime('%Y-%m-%d')
+                    date_naissance = eleve.get_date_naissance.strftime('%Y-%m-%d')
                 except AttributeError:
-                    date_naissance = datetime.strptime(eleve.date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
+                    date_naissance = datetime.strptime(eleve.get_date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
 
                 cursor.execute(query, (
                     date_naissance,
@@ -196,7 +196,6 @@ class Eleve(Personne, ICRUDEleve):
                 if resultat:
                     return cls(*resultat)  
                 else:
-                    print("\033[0;91mMatricule non trouvé.\033[0m")
                     return None
             except Exception as e:
                 print(f"\033[0;91mErreur lors de l'obtention de l'élève: {e}\033[0m")

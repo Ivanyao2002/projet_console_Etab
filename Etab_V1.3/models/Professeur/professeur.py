@@ -125,16 +125,16 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
                     WHERE id = (SELECT id_personne FROM professeurs WHERE id = %s)
                 """
                 try:
-                    date_naissance = professeur.date_naissance.strftime('%Y-%m-%d')
+                    date_naissance = professeur.get_date_naissance.strftime('%Y-%m-%d')
                 except AttributeError:
-                    date_naissance = datetime.strptime(professeur.date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
+                    date_naissance = datetime.strptime(professeur.get_date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
                 
                 cursor.execute(query, (
                     date_naissance,
-                    professeur.ville,
-                    professeur.prenom,
-                    professeur.nom,
-                    professeur.telephone,
+                    professeur.get_ville,
+                    professeur.get_prenom,
+                    professeur.get_nom,
+                    professeur.get_telephone,
                     professeur.get_id,
                 ))
 
@@ -143,10 +143,10 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
                     WHERE id = %s
                 """
                 cursor.execute(query_professeur, (
-                    professeur.vacant,
-                    professeur.matiereEnseigne,
-                    professeur.prochainCours,
-                    professeur.sujetProchaineReunion,
+                    professeur.get_vacant,
+                    professeur.get_matiereEnseigne,
+                    professeur.get_prochainCours,
+                    professeur.get_sujetProchaineReunion,
                     professeur.get_id
                 ))
 
@@ -233,7 +233,6 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
                 if resultat:
                     return cls(*resultat) 
                 else:
-                    print("\033[0;91mID non trouvé.\033[0m")
                     return None
             except Exception as e:
                 print(f"\033[0;91mErreur lors de l'obtention du professeur: {e}\033[0m")
