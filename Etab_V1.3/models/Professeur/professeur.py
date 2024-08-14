@@ -9,11 +9,13 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
         Classe représentant un professeur, héritant de Personne et implémentant des interfaces éducatives.
     """
 
-    __professeurs = []
+    # __idUnique =  0
     
     # Initialise un nouveau professeur avec ses informations personnelles et ses responsabilités.
     def __init__(self, dateNaissance, ville, prenom, nom, telephone, vacant, matiereEnseigne, prochainCours, sujetProchaineReunion):
         super().__init__(dateNaissance, ville, prenom, nom, telephone)
+        # Professeur.__idUnique += 1
+        # self.__id =  Professeur.__idUnique
         self.__vacant = vacant
         self.__matiereEnseigne = matiereEnseigne
         self.__prochainCours = prochainCours
@@ -22,22 +24,22 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
     # Retourne une représentation sous forme de chaîne du professeur.
     def __str__(self):
         statut_affiche = "Oui" if self.__vacant else "Non"
-        return f"Professeur n° {self.id} : {self.nom} {self.prenom}, née le {self.date_naissance} à {self.ville}, numéro de téléphone : {self.telephone}, vacant: {statut_affiche}, enseigne {self.__matiereEnseigne}"
+        return f"Professeur n° {self.get_id} : {self.get_nom} {self.get_prenom}, née le {self.get_date_naissance} à {self.get_ville}, numéro de téléphone : {self.get_telephone}, vacant: {statut_affiche}, enseigne {self.__matiereEnseigne}"
 
     @property 
-    def vacant(self):
+    def get_vacant(self):
         return self.__vacant
     
     @property 
-    def matiereEnseigne(self):
+    def get_matiereEnseigne(self):
         return self.__matiereEnseigne
 
     @property 
-    def prochainCours(self):
+    def get_prochainCours(self):
         return self.__prochainCours
     
     @property 
-    def sujetProchaineReunion(self):
+    def get_sujetProchaineReunion(self):
         return self.__sujetProchaineReunion
 
     def set_sujetProchaineReunion(self, sujetProchaineReunion):
@@ -122,14 +124,18 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
                     UPDATE personnes SET date_naissance = %s, ville = %s, prenom = %s, nom = %s, telephone = %s 
                     WHERE id = (SELECT id_personne FROM professeurs WHERE id = %s)
                 """
-                date_naissance = datetime.strptime(professeur.date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
+                try:
+                    date_naissance = professeur.date_naissance.strftime('%Y-%m-%d')
+                except AttributeError:
+                    date_naissance = datetime.strptime(professeur.date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
+                
                 cursor.execute(query, (
                     date_naissance,
                     professeur.ville,
                     professeur.prenom,
                     professeur.nom,
                     professeur.telephone,
-                    professeur.id
+                    professeur.get_id,
                 ))
 
                 query_professeur = """
@@ -141,7 +147,7 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
                     professeur.matiereEnseigne,
                     professeur.prochainCours,
                     professeur.sujetProchaineReunion,
-                    professeur.id
+                    professeur.get_id
                 ))
 
                 connection.commit()
@@ -216,12 +222,16 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
         if connection:
             try:
                 cursor = connection.cursor()
-                query = "SELECT * FROM professeurs WHERE id = %s"
+                query = """SELECT p.date_naissance, p.ville, p.prenom, p.nom, p.telephone, 
+                                pr.vacant, pr.matiere_enseigne, pr.prochain_cours, pr.sujet_prochaine_reunion 
+                        FROM personnes p 
+                        JOIN professeurs pr ON p.id = pr.id_personne 
+                        WHERE pr.id = %s"""
                 cursor.execute(query, (identifiant,))
                 resultat = cursor.fetchone()
 
                 if resultat:
-                    return resultat
+                    return cls(*resultat) 
                 else:
                     print("\033[0;91mID non trouvé.\033[0m")
                     return None

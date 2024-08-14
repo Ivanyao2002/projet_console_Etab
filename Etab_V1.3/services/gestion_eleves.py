@@ -59,19 +59,15 @@ def modifierEleve():
     eleve = Eleve.obtenir(matricule)
     if eleve:
         print(f"Modification de l'élève : {eleve}")
-        eleve.set_date_naissance = input("Nouvelle date de naissance (JJ-MM-AAAA) : ") or eleve.get_date_naissance
-        eleve.set_ville = input("Nouvelle ville : ") or eleve.get_ville
-        eleve.set_prenom = input("Nouveau prénom : ") or eleve.get_prenom
-        eleve.set_nom = input("Nouveau nom : ") or eleve.get_nom
-        eleve.set_telephone = input("Nouveau téléphone : ") or eleve.get_telephone
-        eleve.set_classe = input("Nouvelle classe : ") or eleve.get_classe
+        eleve.date_naissance = input("Nouvelle date de naissance (JJ-MM-AAAA) : ") or eleve.get_date_naissance
+        eleve.ville = input("Nouvelle ville : ") or eleve.get_ville
+        eleve.prenom = input("Nouveau prénom : ") or eleve.get_prenom
+        eleve.nom = input("Nouveau nom : ") or eleve.get_nom
+        eleve.telephone = input("Nouveau téléphone : ") or eleve.get_telephone
+        eleve.classe = input("Nouvelle classe : ") or eleve.get_classe
         
-        if Eleve.modifier(eleve):
-            print(f"Élève {eleve.prenom} {eleve.nom} modifié avec succès.")
-        else:
-            print("\033[0;91mErreur lors de la modification de l'élève.\033[0m")
-    else:
-        print(f"Aucun élève trouvé avec le matricule {matricule}.")
+        Eleve.modifier(eleve)
+
 
 def supprimerEleve():
     matricule = input("\033[0;33mEntrez le matricule de l'élève à supprimer : \033[0m")

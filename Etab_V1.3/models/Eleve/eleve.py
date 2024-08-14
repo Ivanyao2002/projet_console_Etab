@@ -76,6 +76,7 @@ class Eleve(Personne, ICRUDEleve):
                 connection.close()
 
     # Modifie un élèvé
+    @classmethod
     def modifier(cls, eleve):
         """Modifie un élève dans la base de données."""
         connection = bd_connection.create_connection()
@@ -86,7 +87,11 @@ class Eleve(Personne, ICRUDEleve):
                     UPDATE personnes SET date_naissance = %s, ville = %s, prenom = %s, nom = %s, telephone = %s 
                     WHERE id = (SELECT id_personne FROM eleves WHERE matricule = %s)
                 """
-                date_naissance = datetime.strptime(eleve.get_date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
+                try:
+                    date_naissance = eleve.date_naissance.strftime('%Y-%m-%d')
+                except AttributeError:
+                    date_naissance = datetime.strptime(eleve.date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
+
                 cursor.execute(query, (
                     date_naissance,
                     eleve.get_ville,
@@ -177,12 +182,19 @@ class Eleve(Personne, ICRUDEleve):
         if connection:
             try:
                 cursor = connection.cursor()
-                query = "SELECT * FROM eleves WHERE matricule = %s"
+                query = """
+                    SELECT p.date_naissance, p.ville, p.prenom, p.nom, p.telephone, 
+                    e.classe, e.matricule
+                    FROM personnes p 
+                    JOIN eleves e ON p.id = e.id_personne 
+                    WHERE e.matricule = %s
+                """
+                
                 cursor.execute(query, (identifiant,))
                 resultat = cursor.fetchone()
 
                 if resultat:
-                    return resultat  
+                    return cls(*resultat)  
                 else:
                     print("\033[0;91mMatricule non trouvé.\033[0m")
                     return None

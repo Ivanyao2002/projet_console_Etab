@@ -47,4 +47,4 @@ while True:
         print("\033[0;91mÉchec de l'authentification, veuillez vérifier les informations saisies !\033[0m")
         time.sleep(0.4)
         continue
-    break #12-06-2000? 0708862333 
+    break 

@@ -65,22 +65,17 @@ def modifierProfesseur():
         print(f"Modification du professeur : {professeur}")
         
         # Demande des nouvelles informations
-        professeur.date_naissance = input("Nouvelle date de naissance (JJ-MM-AAAA) : ") or professeur.date_naissance
-        professeur.ville = input("Nouvelle ville : ") or professeur.ville
-        professeur.prenom = input("Nouveau prénom : ") or professeur.prenom
-        professeur.nom = input("Nouveau nom : ") or professeur.nom
-        professeur.telephone = input("Nouveau téléphone : ") or professeur.telephone
-        professeur.vacant = input("Est-ce vacant ? (oui/non) : ").lower() == 'oui'
-        professeur.matiereEnseigne = input("Nouvelle matière enseignée : ") or professeur.matiereEnseigne
-        professeur.prochainCours = input("Nouveau sujet du prochain cours : ") or professeur.prochainCours
-        professeur.sujetProchaineReunion = input("Nouveau sujet de la prochaine réunion : ") or professeur.sujetProchaineReunion
+        professeur.date_naissance = input("Nouvelle date de naissance (JJ-MM-AAAA) : ") or professeur.get_date_naissance
+        professeur.ville = input("Nouvelle ville : ") or professeur.get_ville
+        professeur.prenom = input("Nouveau prénom : ") or professeur.get_prenom
+        professeur.nom = input("Nouveau nom : ") or professeur.get_nom
+        professeur.telephone = input("Nouveau téléphone : ") or professeur.get_telephone
+        professeur.vacant = input("Est-ce vacant ? (oui/non) : ").lower() == 'oui' or professeur.get_vacant
+        professeur.matiereEnseigne = input("Nouvelle matière enseignée : ") or professeur.get_matiereEnseigne
+        professeur.prochainCours = input("Nouveau sujet du prochain cours : ") or professeur.get_prochainCours
+        professeur.sujetProchaineReunion = input("Nouveau sujet de la prochaine réunion : ") or professeur.get_sujetProchaineReunion
         
-        if Professeur.modifier(professeur):
-            print(f"Professeur {professeur.prenom} {professeur.nom} modifié avec succès.")
-        else:
-            print("\033[0;91mErreur lors de la modification du professeur.\033[0m")
-    else:
-        print(f"Aucun professeur trouvé avec l'identifiant {identifiant}.")
+        Professeur.modifier(professeur)
 
 def supprimerProfesseur():
     """Supprimer un professeur."""
