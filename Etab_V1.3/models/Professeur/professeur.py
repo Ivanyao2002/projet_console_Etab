@@ -2,20 +2,16 @@ from datetime import datetime
 from models.personne import Personne
 from models.Professeur.ICrudProfesseur import ICRUDProfesseur
 from models.Professeur.IEducation import IEducation
-import bd_connection
+from bd_connection import BD
 
 class Professeur(Personne, IEducation, ICRUDProfesseur):
     """
         Classe représentant un professeur, héritant de Personne et implémentant des interfaces éducatives.
     """
-
-    # __idUnique =  0
     
     # Initialise un nouveau professeur avec ses informations personnelles et ses responsabilités.
     def __init__(self, dateNaissance, ville, prenom, nom, telephone, vacant, matiereEnseigne, prochainCours, sujetProchaineReunion):
         super().__init__(dateNaissance, ville, prenom, nom, telephone)
-        # Professeur.__idUnique += 1
-        # self.__id =  Professeur.__idUnique
         self.__vacant = vacant
         self.__matiereEnseigne = matiereEnseigne
         self.__prochainCours = prochainCours
@@ -73,31 +69,23 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
     @classmethod
     def ajouter(cls, professeur):
         """Ajoute un professeur à la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
-                
-                query_personne = """
-                    INSERT INTO personnes (date_naissance, ville, prenom, nom, telephone) 
-                    VALUES (%s, %s, %s, %s, %s)
-                """
+
                 date_naissance = datetime.strptime(professeur.get_date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
-                cursor.execute(query_personne, (
+
+                query_professeur = """
+                    INSERT INTO professeurs (date_naissance, ville, prenom, nom, telephone, vacant, matiere_enseigne, prochain_cours, sujet_prochaine_reunion) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(query_professeur, (
                     date_naissance,
                     professeur.get_ville,
                     professeur.get_prenom,
                     professeur.get_nom,
-                    professeur.get_telephone
-                ))
-                id_personne = cursor.lastrowid
-
-                query_professeur = """
-                    INSERT INTO professeurs (id_personne, vacant, matiere_enseigne, prochain_cours, sujet_prochaine_reunion) 
-                    VALUES (%s, %s, %s, %s, %s)
-                """
-                cursor.execute(query_professeur, (
-                    id_personne,
+                    professeur.get_telephone,
                     professeur._Professeur__vacant,
                     professeur._Professeur__matiereEnseigne,
                     professeur._Professeur__prochainCours,
@@ -116,38 +104,30 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
     @classmethod
     def modifier(cls, professeur):
         """Modifie un professeur dans la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
-                query = """
-                    UPDATE personnes SET date_naissance = %s, ville = %s, prenom = %s, nom = %s, telephone = %s 
-                    WHERE id = (SELECT id_personne FROM professeurs WHERE id = %s)
+                query_professeur = """
+                    UPDATE professeurs SET date_naissance = %s, ville = %s, prenom = %s, nom = %s, telephone = %s, vacant = %s, matiere_enseigne = %s, prochain_cours = %s, sujet_prochaine_reunion = %s 
+                    WHERE id = %s
                 """
                 try:
                     date_naissance = professeur.get_date_naissance.strftime('%Y-%m-%d')
                 except AttributeError:
                     date_naissance = datetime.strptime(professeur.get_date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
                 
-                cursor.execute(query, (
+                cursor.execute(query_professeur, (
                     date_naissance,
                     professeur.get_ville,
                     professeur.get_prenom,
                     professeur.get_nom,
                     professeur.get_telephone,
-                    professeur.get_id,
-                ))
-
-                query_professeur = """
-                    UPDATE professeurs SET vacant = %s, matiere_enseigne = %s, prochain_cours = %s, sujet_prochaine_reunion = %s 
-                    WHERE id = %s
-                """
-                cursor.execute(query_professeur, (
                     professeur.get_vacant,
                     professeur.get_matiereEnseigne,
                     professeur.get_prochainCours,
-                    professeur.get_sujetProchaineReunion,
-                    professeur.get_id
+                    professeur.get_sujetProchaineReunion,                    
+                    professeur.get_id,
                 ))
 
                 connection.commit()
@@ -165,7 +145,7 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
     @classmethod
     def supprimer(cls, identifiant):
         """Supprime un professeur de la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
@@ -193,7 +173,7 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
     @classmethod
     def obtenirProfesseur(cls):
         """Obtenir tous les professeurs de la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
@@ -218,16 +198,16 @@ class Professeur(Personne, IEducation, ICRUDProfesseur):
     @classmethod
     def obtenir(cls, identifiant):
         """Obtenir un professeur par son ID."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
-                query = """SELECT p.date_naissance, p.ville, p.prenom, p.nom, p.telephone, 
-                                pr.vacant, pr.matiere_enseigne, pr.prochain_cours, pr.sujet_prochaine_reunion 
-                        FROM personnes p 
-                        JOIN professeurs pr ON p.id = pr.id_personne 
-                        WHERE pr.id = %s"""
-                cursor.execute(query, (identifiant,))
+                query_professeur = """
+                        SELECT date_naissance, ville, prenom, nom, telephone, vacant, matiere_enseigne, prochain_cours, sujet_prochaine_reunion 
+                        FROM professeurs 
+                        WHERE id = %s
+                        """
+                cursor.execute(query_professeur, (identifiant,))
                 resultat = cursor.fetchone()
 
                 if resultat:

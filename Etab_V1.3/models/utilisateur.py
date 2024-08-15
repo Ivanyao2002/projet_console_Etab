@@ -1,5 +1,5 @@
 from datetime import datetime
-import bd_connection
+from bd_connection import BD
 
 class Utilisateur:
     """
@@ -49,7 +49,7 @@ class Utilisateur:
         dateCreation = datetime.now()
         nouvel_utilisateur = cls(pseudo, motDePasse, dateCreation)
         
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection and connection.is_connected():
             try:
                 curseur = connection.cursor()
@@ -68,7 +68,7 @@ class Utilisateur:
     def modifierMotDePasse(self, nouveauMotDePasse):
         """Modifie le mot de passe de l'utilisateur dans la base de données."""
         self.__motDePasse = nouveauMotDePasse
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection and connection.is_connected():
             try:
                 curseur = connection.cursor()
@@ -85,7 +85,7 @@ class Utilisateur:
     @classmethod
     def supprimerCompte(cls, pseudo):
         """Supprime un utilisateur de la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection and connection.is_connected():
             try:
                 curseur = connection.cursor()
@@ -102,7 +102,7 @@ class Utilisateur:
     @classmethod
     def listerUtilisateurs(cls):
         """Liste tous les utilisateurs de la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         utilisateurs = []
         if connection and connection.is_connected():
             try:
@@ -121,7 +121,7 @@ class Utilisateur:
 
     @classmethod
     def recuperer_utilisateur(cls, pseudo):
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             curseur = connection.cursor()
             query = "SELECT id, pseudo, date_creation FROM utilisateurs WHERE pseudo = %s"

@@ -1,13 +1,12 @@
 from datetime import datetime
 from models.personne import Personne
 from models.Eleve.ICrudEleve import ICRUDEleve
-import bd_connection
+from bd_connection import BD
 
 class Eleve(Personne, ICRUDEleve):
     """
         Classe représentant un élève, héritant de la classe Personne et de la classe ICRUDEleve.
     """
-    __eleves = []
 
     # Initialise un nouvel élève avec ses informations personnelles
     def __init__(self, dateNaissance, ville, prenom, nom, telephone, classe, matricule):
@@ -37,32 +36,25 @@ class Eleve(Personne, ICRUDEleve):
     # Implémentation des méthodes CRUD
     # Ajouter un élève
     @classmethod
-    def ajouter(cls, eleve):
+    def ajouter(cls, eleve):    
         """Ajoute un élève à la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
-                query_personne = """
-                    INSERT INTO personnes (date_naissance, ville, prenom, nom, telephone) 
-                    VALUES (%s, %s, %s, %s, %s)
-                """
+
                 date_naissance = datetime.strptime(eleve.get_date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
-                cursor.execute(query_personne, (
+
+                query_eleve = """
+                    INSERT INTO eleves (date_naissance, ville, prenom, nom, telephone, classe, matricule) 
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(query_eleve, (
                     date_naissance,
                     eleve.get_ville,
                     eleve.get_prenom,
                     eleve.get_nom,
-                    eleve.get_telephone
-                ))
-                id_personne = cursor.lastrowid
-
-                query_eleve = """
-                    INSERT INTO eleves (id_personne, classe, matricule) 
-                    VALUES (%s, %s, %s)
-                """
-                cursor.execute(query_eleve, (
-                    id_personne,
+                    eleve.get_telephone,
                     eleve._Eleve__classe,  
                     eleve._Eleve__matricule  
                 ))
@@ -79,33 +71,26 @@ class Eleve(Personne, ICRUDEleve):
     @classmethod
     def modifier(cls, eleve):
         """Modifie un élève dans la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
-                query = """
-                    UPDATE personnes SET date_naissance = %s, ville = %s, prenom = %s, nom = %s, telephone = %s 
-                    WHERE id = (SELECT id_personne FROM eleves WHERE matricule = %s)
+                query_eleve = """
+                    UPDATE eleves SET date_naissance = %s, ville = %s, prenom = %s, nom = %s, telephone = %s,
+                    classe = %s 
+                    WHERE matricule = %s
                 """
                 try:
                     date_naissance = eleve.get_date_naissance.strftime('%Y-%m-%d')
                 except AttributeError:
                     date_naissance = datetime.strptime(eleve.get_date_naissance, '%d-%m-%Y').strftime('%Y-%m-%d')
 
-                cursor.execute(query, (
+                cursor.execute(query_eleve, (
                     date_naissance,
                     eleve.get_ville,
                     eleve.get_prenom,
                     eleve.get_nom,
                     eleve.get_telephone,
-                    eleve._Eleve__matricule
-                ))
-
-                query_eleve = """
-                    UPDATE eleves SET classe = %s 
-                    WHERE matricule = %s
-                """
-                cursor.execute(query_eleve, (
                     eleve._Eleve__classe,
                     eleve._Eleve__matricule
                 ))
@@ -125,7 +110,7 @@ class Eleve(Personne, ICRUDEleve):
     @classmethod
     def obtenirEleve(cls):
         """Obtenir tous les élèves de la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
@@ -150,7 +135,7 @@ class Eleve(Personne, ICRUDEleve):
     @classmethod
     def supprimer(cls, identifiant):
         """Supprime un élève de la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
@@ -178,19 +163,17 @@ class Eleve(Personne, ICRUDEleve):
     @classmethod
     def obtenir(cls, identifiant):
         """Obtenir un élève par son matricule."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
-                query = """
-                    SELECT p.date_naissance, p.ville, p.prenom, p.nom, p.telephone, 
-                    e.classe, e.matricule
-                    FROM personnes p 
-                    JOIN eleves e ON p.id = e.id_personne 
-                    WHERE e.matricule = %s
+                query_eleve = """
+                    SELECT date_naissance, ville, prenom, nom, telephone, classe, matricule
+                    FROM eleves 
+                    WHERE matricule = %s
                 """
                 
-                cursor.execute(query, (identifiant,))
+                cursor.execute(query_eleve, (identifiant,))
                 resultat = cursor.fetchone()
 
                 if resultat:
@@ -209,12 +192,12 @@ class Eleve(Personne, ICRUDEleve):
     @classmethod
     def exists(cls, matricule):
         """Vérifie si un matricule existe déjà dans la base de données."""
-        connection = bd_connection.create_connection()
+        connection = BD.create_connection()
         if connection:
             try:
                 cursor = connection.cursor()
-                query = "SELECT COUNT(*) FROM eleves WHERE matricule = %s"
-                cursor.execute(query, (matricule,))
+                query_eleve = "SELECT COUNT(*) FROM eleves WHERE matricule = %s"
+                cursor.execute(query_eleve, (matricule,))
                 count = cursor.fetchone()[0]
                 return count > 0
             except Exception as e:
